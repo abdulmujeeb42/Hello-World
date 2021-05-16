@@ -7,22 +7,22 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Run keypoint detection')
 parser.add_argument("--device", default="cpu", help="Device to inference on")
-parser.add_argument("--image_file", default="img_11.png", help="Input image")
+parser.add_argument("--image_file", default="image4.jpg", help="Input image")
 
-args = parser.parse_args()
-
+args = parser.parse_args() 
 blank=np.zeros((700,700,3))
 blank2=np.zeros((700,700,3))
-
 image = cv2.imread(args.image_file)
 image1=cv2.resize(image,(700,700))
-
+res = cv2.imread('Capture.PNG')
+res1=cv2.resize(res,(1200,750))
+blank4=cv2.imread('output.jpeg')
+blank3=cv2.resize(blank4,(650,650))
 protoFile = "pose_deploy_linevec.prototxt"
 weightsFile = "pose_iter_440000.caffemodel"
 nPoints = 18
 # COCO Output Format
 keypointsMapping = ['Nose', 'Neck', 'R-Sho', 'R-Elb', 'R-Wr', 'L-Sho', 'L-Elb', 'L-Wr', 'R-Hip', 'R-Knee', 'R-Ank', 'L-Hip', 'L-Knee', 'L-Ank', 'R-Eye', 'L-Eye', 'R-Ear', 'L-Ear']
-
 POSE_PAIRS = [[1,2], [1,5], [2,3], [3,4], [5,6], [6,7],
               [1,8], [8,9], [9,10], [1,11], [11,12], [12,13],
               [1,0], [0,14], [14,16], [0,15], [15,17],
@@ -30,28 +30,19 @@ POSE_PAIRS = [[1,2], [1,5], [2,3], [3,4], [5,6], [6,7],
 POSE_PAIRS1 = [[1,0],[1,8], [2,3],[3,4],[8,11],[9,12],[8,9],[11,12], [1,5], [5,6], [6,7],
               [9,10], [1,11], [12,13],
               [0,14],  [0,15],[1,2], [5,16]]
-# index of pafs correspoding to the POSE_PAIRS
-# e.g for POSE_PAIR(1,2), the PAFs are located at indices (31,32) of output, Similarly, (1,5) -> (39,40) and so on.
 mapIdx = [[31,32], [39,40], [33,34], [35,36], [41,42], [43,44],
           [19,20], [21,22], [23,24], [25,26], [27,28], [29,30],
           [47,48], [49,50], [53,54], [51,52], [55,56],
           [37,38], [45,46]]
-
 colors = [ [0,100,255], [0,100,255], [0,255,255], [0,100,255], [0,255,255], [0,100,255],
          [0,255,0], [255,200,100], [255,0,255], [0,255,0], [255,200,100], [255,0,255],
          [0,0,255], [255,0,0], [200,200,0], [255,0,0], [200,200,0], [0,0,0]]
-
-
 def getKeypoints(probMap, threshold=0.1):
-
     mapSmooth = cv2.GaussianBlur(probMap,(3,3),0,0)
-
     mapMask = np.uint8(mapSmooth>threshold)
     keypoints = []
-
     #find the blobs
     contours, _ = cv2.findContours(mapMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
     #for each blob find the maxima
     for cnt in contours:
         blobMask = np.zeros(mapMask.shape)
@@ -61,8 +52,6 @@ def getKeypoints(probMap, threshold=0.1):
         keypoints.append(maxLoc + (probMap[maxLoc[1], maxLoc[0]],))
 
     return keypoints
-
-
 # Find valid connections between the different joints of a all persons present
 def getValidPairs(output):
     valid_pairs = []
@@ -339,6 +328,7 @@ if(anglelist[0][0][0]==296 and anglelist[0][0][1]==234):
     shoulder_check = "shoulder_raised"
     leg_check = "LegRaised"
 
+#                     ***********REBA ALGORITHM**********
 load = 0
 shock = "ForceActed"
 coupling = "NotAcceptable"
@@ -360,6 +350,7 @@ if Twist_check == "Twisted":
     neck_score += 1
 if bend_check == "Bend":
     neck_score += 1
+
 print("Neck Score:", neck_score)
 
 # Trunk position
@@ -420,7 +411,30 @@ else:
 if wrist_check == "Twisted":
     wrist_score += 1
 print("Wrist Score:", wrist_score)
-
+blank3 = cv2.putText(blank3, str(neck), (348,256), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(trunk), (348,290), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(Upperarm), (348,333), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(lowerarm), (348,371), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(leg), (348,406), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(wrist), (348,444), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(neck_score), (511,253), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(trunk_score), (511,290), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(upper_arm_score), (511,333), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(lower_arm_score), (511,371), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(leg_score), (511,406), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, str(wrist_score), (511,444), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
 
 class RebaScore:
     def __init__(self):
@@ -478,17 +492,21 @@ class RebaScore:
         print(score_c)
         return score_c
 
-
 rebaScore = RebaScore()
 score_a = rebaScore.compute_score_a()
+#11 lps < Load < 22 lps Load > 11 lps
 if 5 <= load <= 10:
     score_a += 1
 elif load > 10:
     score_a += 2
 elif shock == "ForceActed":
     score_a += 1
+#Shock or Rapid build up force acting
 print("Score A:", score_a)
+blank3 = cv2.putText(blank3, str(score_a), (473,480), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
 score_b = rebaScore.compute_score_b()
+#Inappropriate handle No handle but safe No handle and unsafe
 if coupling == "Acceptable":
     score_b += 1
 elif coupling == "NotAcceptable":
@@ -496,8 +514,13 @@ elif coupling == "NotAcceptable":
 elif coupling == "AwkwardUnsafe":
     score_b += 3
 print("Score B:", score_b)
+blank3 = cv2.putText(blank3, str(score_b), (473,516), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
 score_c = rebaScore.compute_score_c(score_a, score_b)
 print("Score C:", score_c)
+blank3 = cv2.putText(blank3, str(score_c), (473,553), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+#more body parts are held Repeated small range action Rapid change in postures
 if Activity == "OneRepeat":
     score_c += 1
 elif Activity == "MoreRepeat":
@@ -506,7 +529,114 @@ elif Activity == "Unstable":
     score_c += 3
 print("Reba Score : ", score_c)
 
-cv2.imshow("Input Pose" , image1)
-cv2.imshow("Detected Pose" , blank2)
-cv2.imshow("Results",blank)
+if(score_c==1):
+    risk_level=1
+    risk_description='Negligible risk.'
+if(2<=score_c>=3):
+    risk_level=2
+    risk_description='Low risk. Change may be needed.'
+if(4<=score_c>=7):
+    risk_level=3
+    risk_description='Medium risk. Further investigate change soon.'
+if(8<=score_c>=10):
+    risk_level=4
+    risk_description='High risk. Investigate and implement change.'
+if(score_c>=11):
+    risk_level=5
+    risk_description='Very high risk. Implement change.'
+cv2.rectangle(blank3,(5,40),(640,175),(0,0,255),-1)
+blank3 = cv2.putText(blank3, str(score_c), (473,592), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, ' POSTURE ASSESSMENT REPORT', (150,25), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (65, 105, 225), 2, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, 'REBA Score : '+str(score_c), (200,65), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.7, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, 'Risk Level : '+str(risk_level), (200,105), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.7, (0, 0, 0), 1, cv2.LINE_AA)
+blank3 = cv2.putText(blank3, 'Risk Description :'+risk_description, (15,140), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+cv2.rectangle(res1,(5,40),(1170,175),(0,0,255),-1)
+res1 = cv2.putText(res1, ' MSD REPORT', (400,25), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (0, 0, 0), 2, cv2.LINE_AA)
+res1 = cv2.putText(res1, 'REBA Score : '+str(score_c), (400,65), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.7, (0, 0, 0), 1, cv2.LINE_AA)
+res1 = cv2.putText(res1, 'Risk Level : '+str(risk_level), (400,105), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.7, (0, 0, 0), 1, cv2.LINE_AA)
+res1 = cv2.putText(res1, 'Risk Description :'+risk_description, (300,140), cv2.FONT_HERSHEY_TRIPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+res1 = cv2.putText(res1, 'PROBABLE DISORDERS', (300,220), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (0,0,255), 2, cv2.LINE_AA)
+if neck_score>=3:
+    cv2.putText(res1, 'Neck     : Muscle strain, ligament sprain, myofascial pain affected by these diseases due to neck twisting.', (30,250), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Neck      : The neck score is low. so, he will not affected by neck diseases. ', (30,250), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if trunk_score>=3:
+    cv2.putText(res1, 'Trunk     : Trunk muscle strength decreases with chronic low back pain due to over bending of trunk.', (30,280), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Trunk     : The trunk score is low. so, he will not affected by trunk diseases.', (30,280), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if leg_score>=3:
+    cv2.putText(res1, 'Leg       : Arthritis, Fibromyalgia and shin splints affected by these diseases due to over rise of leg.', (30,310), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Leg       : The leg score is low. so, he will not affected by leg diseases.', (30,310), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if upper_arm_score>=3:
+    cv2.putText(res1, 'Upperarm : Carpal tunnel syndrome, tendinitis and hand-arm vibration syndrome affected by these diseases due to bad posture of upperarm.', (30,340), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'upperarm : The upperarm score is low. so, he will not affected by upperarm diseases.', (30,340), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if lower_arm_score>=2:
+    cv2.putText(res1, 'lowerarm  : lowerarm tenderness, aches, tingling , numbness and cramp affected by these diseases due to bad posture of lowerarm.', (30,370), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'lowerarm  : The lowearm score is low. so, he will not affected by lowerarm diseases.', (30,370), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+
+cv2.putText(res1, 'wrist      : The wrist score is low. so, he will not affected by wrist diseases.', (30,400), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+res1 = cv2.putText(res1, ' SUGGESTIONS FOR IMPROVEMENT', (290,450), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (0, 0, 225), 2, cv2.LINE_AA)
+if neck_score>=3:
+    cv2.putText(res1, 'Neck       : Avoid excessive neck extension, twisting and bending.', (30,480), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Neck      : No suggestion was needed.', (30,480), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if trunk_score>=3:
+    cv2.putText(res1, 'Trunk      : Avoid excessive trunk extension, twisting and bending.', (30,510), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Trunk      : No suggestion was needed.', (30,510), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if leg_score>=3:
+    cv2.putText(res1, 'Leg        : Avoid over leg extension and raise.', (30,540), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'Leg        : No suggestion was needed.', (30,540), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if upper_arm_score>=3:
+    cv2.putText(res1, 'Upperarm : Avoid shoulder extension and raise.', (30,570), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'upperarm : No suggestion was needed.', (30,570), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+if lower_arm_score>=2:
+    cv2.putText(res1, 'lowerarm  : Avoid excessive lower limb raise.', (30,600), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+else:
+    cv2.putText(res1, 'lowerarm  : No suggestion was needed.', (30,600), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+cv2.putText(res1, 'wrist      : No suggestion was needed.', (30,630), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (0, 0, 0), 1, cv2.LINE_AA)
+
+cv2.imshow('Score Table',blank3)
+#cv2.imshow("Input Pose" , image1)
+#cv2.imshow("Detected Pose" , blank2)
+#cv2.imshow("Results",blank)
+cv2.imshow('res',res1)
 cv2.waitKey(0)
